@@ -1,9 +1,9 @@
 /**
- * The listener interface for receiving updates when the state of a game changes.
+ * The observer interface for receiving events when the state of a game changes.
  *
  * @author Tom Galvin
  */
-public interface GameListener {
+public interface GameObserver {
     /**
      * Invoked when a tile on the game board changes.
      *

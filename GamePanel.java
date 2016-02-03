@@ -1,12 +1,30 @@
 import javax.swing.JPanel;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JFrame;
 import java.awt.BorderLayout;
 
+/**
+ * A panel showing the state of a game.
+ *
+ * @author Tom Galvin
+ */
 public class GamePanel extends JPanel implements GameListener {
     private Game game;
     private JButtonGrid buttons;
     private JLabel opponentNameLabel, gameStateLabel;
+
+    public static void openGame(Game game) {
+        JFrame frame = new JFrame(
+                String.format(
+                    "Game with %s",
+                    game.getRemotePlayerNickname()
+                    )
+                );
+        frame.add(new GamePanel(game));
+        frame.setSize(300, 340);
+        frame.setVisible(true);
+    }
 
     public GamePanel(Game game) {
         super(new BorderLayout());

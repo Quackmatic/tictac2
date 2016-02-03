@@ -1,5 +1,6 @@
 import javax.swing.ListSelectionModel;
 import javax.swing.JPanel;
+import javax.swing.JFrame;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
@@ -16,6 +17,14 @@ public class LobbyPanel extends JPanel implements LobbyObserver {
     private JTable playerTable;
     private JLabel statusLabel;
     private Lobby lobby;
+
+    public static void openLobby(Lobby lobby) {
+        JFrame frame = new JFrame("Game Lobby");
+        frame.add(new LobbyPanel(lobby));
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(300, 340);
+        frame.setVisible(true);
+    }
 
     public LobbyPanel(Lobby lobby) {
         super(new BorderLayout());
@@ -58,6 +67,15 @@ public class LobbyPanel extends JPanel implements LobbyObserver {
 
     public void setStatus(String status) {
         statusLabel.setText(status);
+    }
+
+    public void messageReceived(String message) {
+        JOptionPane.showMessageDialog(
+                this,
+                message,
+                "Server Message",
+                JOptionPane.INFORMATION_MESSAGE
+                );
     }
 
     public void playerEnter(String nickname, int score) {

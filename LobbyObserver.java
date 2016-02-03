@@ -41,4 +41,11 @@ public interface LobbyObserver {
      * @param game The {@link Game} object representing the game that was started.
      */
     public void gameStarted(Game game);
+
+    /**
+     * Invoked when the client receives a message from the server.
+     *
+     * @param message The message received.
+     */
+    public void messageReceived(String message);
 }

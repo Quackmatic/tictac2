@@ -79,8 +79,14 @@ public class Game {
         }
     }
 
-    protected void getGameID() {
+    protected int getGameID() {
         return gameID;
+    }
+
+    public void gameMessageReceived(String message) {
+        for(GameObserver observer : observers) {
+            observer.gameMessageReceived(message);
+        }
     }
 
     /**

@@ -37,6 +37,10 @@ public class LobbyModel extends AbstractTableModel implements LobbyObserver {
         }
     }
 
+    public void messageReceived(String message) {
+        // nothing
+    }
+
     public void playerEnter(String nickname, int score) {
         if(!nicknames.contains(nickname)) {
             int row = nicknames.indexOf(nickname);

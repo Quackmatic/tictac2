@@ -5,7 +5,7 @@ public class Lobby {
     private HashMap<String, Integer> players;
     private LobbyProvider provider;
     private ArrayList<LobbyObserver> observers;
-    private lobbyID;
+    private int lobbyID;
 
     public Lobby(int lobbyID, LobbyProvider provider) {
         this.provider = provider;
@@ -27,6 +27,12 @@ public class Lobby {
 
     public String[] getPlayers() {
         return players.keySet().toArray(new String[0]);
+    }
+
+    public void messageReceived(String message) {
+        for(LobbyObserver observer : observers) {
+            observer.messageReceived(message);
+        }
     }
 
     public void addPlayer(String nickname, int score) {

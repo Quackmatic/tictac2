@@ -20,4 +20,11 @@ public interface GameObserver {
      * @param canMove Whether the local player can now make a move or not.
      */
     public void gameStateChanged(int state, boolean canMove);
+
+    /**
+     * Invoked when the client receives a game-related message from the server.
+     *
+     * @param message The received message.
+     */
+    public void gameMessageReceived(String message);
 }

@@ -52,6 +52,15 @@ public class GamePanel extends JPanel implements GameListener {
         }
     }
 
+    public void gameMessageReceived(String message) {
+        JOptionPane.showMessageDialog(
+                this,
+                message,
+                "Server Message",
+                JOptionPane.INFORMATION_MESSAGE
+                );
+    }
+
     public void gameTileChanged(int x, int y, int value) {
         String text = Game.getTileString(value);
         buttons.getButton(x, y).setText(text);

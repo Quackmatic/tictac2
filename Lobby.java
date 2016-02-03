@@ -5,14 +5,20 @@ public class Lobby {
     private HashMap<String, Integer> players;
     private LobbyProvider provider;
     private ArrayList<LobbyObserver> observers;
+    private lobbyID;
 
-    public Lobby(LobbyProvider provider) {
+    public Lobby(int lobbyID, LobbyProvider provider) {
         this.provider = provider;
+        this.lobbyID = lobbyID;
 
         players = new HashMap<String, Integer>();
         observers = new ArrayList<LobbyObserver>();
 
-        this.provider.getInitialPlayers();
+        this.provider.getInitialPlayers(this);
+    }
+
+    protected int getLobbyID() {
+        return lobbyID;
     }
 
     public void addObserver(LobbyObserver observer) {
@@ -42,7 +48,7 @@ public class Lobby {
     }
 
     public void sendGameRequest(String recipient) {
-        provider.sendGameRequest(recipient);
+        provider.sendGameRequest(this, recipient);
     }
 
     public void gameRequestSent(String recipient, int gameID) {
@@ -52,7 +58,7 @@ public class Lobby {
     }
     
     public void acceptGameRequest(int gameID) {
-        provider.acceptGameRequest(gameID);
+        provider.acceptGameRequest(this, gameID);
     }
 
     public void gameRequestReceived(String sender, int gameID) {

@@ -79,6 +79,10 @@ public class Game {
         }
     }
 
+    protected void getGameID() {
+        return gameID;
+    }
+
     /**
      * Add a new {@link GameObserver} to this game.
      *
@@ -191,7 +195,7 @@ public class Game {
      * @param y The Y co-ordinate (between 0 and 2).
      */
     public void makeMove(int x, int y) {
-        provider.makeMove(x, y);
+        provider.makeMove(this, x, y);
     }
 
     /**

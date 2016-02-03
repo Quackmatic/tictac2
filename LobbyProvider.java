@@ -4,7 +4,7 @@
  * @author Tom Galvin
  */
 public interface LobbyProvider {
-    public void sendGameRequest(String nickname);
-    public void acceptGameRequest(int gameID);
-    public void getInitialPlayers();
+    public void sendGameRequest(Lobby lobby, String nickname);
+    public void acceptGameRequest(Lobby lobby, int gameID);
+    public void getInitialPlayers(Lobby lobby);
 }

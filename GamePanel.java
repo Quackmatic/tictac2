@@ -1,7 +1,9 @@
+import java.awt.event.WindowEvent;
 import javax.swing.JPanel;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import java.awt.BorderLayout;
 
 /**
@@ -13,6 +15,7 @@ public class GamePanel extends JPanel implements GameListener {
     private Game game;
     private JButtonGrid buttons;
     private JLabel opponentNameLabel, gameStateLabel;
+    private JFrame parentFrame;
 
     public static void openGame(Game game) {
         JFrame frame = new JFrame(
@@ -21,14 +24,15 @@ public class GamePanel extends JPanel implements GameListener {
                     game.getRemotePlayerNickname()
                     )
                 );
-        frame.add(new GamePanel(game));
+        frame.add(new GamePanel(game, frame));
         frame.setSize(300, 340);
         frame.setVisible(true);
     }
 
-    public GamePanel(Game game) {
+    public GamePanel(Game game, JFrame parentFrame) {
         super(new BorderLayout());
         this.game = game;
+        this.parentFrame = parentFrame;
 
         add(opponentNameLabel = new JLabel(
                     String.format(
@@ -74,12 +78,39 @@ public class GamePanel extends JPanel implements GameListener {
                 break;
             case Game.GAME_LOST:
                 gameStateLabel.setText("You have lost!");
-                // TODO Game loss message, close window
+                JOptionPane.showMessageDialog(
+                        this,
+                        String.format(
+                            "You have lost against %s.",
+                            game.getRemotePlayerNickname()
+                            ),
+                        "Game Finished",
+                        JOptionPane.INFORMATION_MESSAGE
+                        );
+
+                tryToCloseWindow(parentFrame);
                 break;
             case Game.GAME_WON:
                 gameStateLabel.setText("You have won!");
-                // TODO Game win message, close window
+                JOptionPane.showMessageDialog(
+                        this,
+                        String.format(
+                            "You have won against %s, well done!",
+                            game.getRemotePlayerNickname()
+                            ),
+                        "Game Finished",
+                        JOptionPane.INFORMATION_MESSAGE
+                        );
+
+
+                tryToCloseWindow(parentFrame);
                 break;
+        }
+    }
+
+    private void tryToCloseWindow(JFrame frame) {
+        if(frame != null) {
+            frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
         }
     }
 }

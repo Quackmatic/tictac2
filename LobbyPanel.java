@@ -1,3 +1,4 @@
+import javax.swing.ListSelectionModel;
 import javax.swing.JPanel;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -23,9 +24,36 @@ public class LobbyPanel extends JPanel implements LobbyObserver {
         this.playerTable = new JTable(new LobbyModel(lobby));
         add(new JScrollPane(this.playerTable));
         this.playerTable.setFillsViewportHeight(true);
+        this.playerTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         this.lobby.addObserver(this);
 
-        add(statusLabel = new JLabel("Welcome to TicTac2!"));
+        add(statusLabel = new JLabel("Welcome to TicTac2!"),
+                BorderLayout.NORTH);
+
+        JButton challengeButton = new JButton("Send Challenge");
+        challengeButton.addActionListener(e -> sendChallenge());
+        add(challengeButton, BorderLayout.SOUTH);
+    }
+
+    private void sendChallenge() {
+        int selectedRow = playerTable.getSelectedRow();
+        if(selectedRow == -1) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Please select a player before attempting to send a challenge.",
+                    "Challenge",
+                    JOptionPane.ERROR_MESSAGE
+                    );
+        } else {
+            String recipientNickname = playerTable
+                .getValueAt(selectedRow, 0)
+                .toString();
+            lobby.sendGameRequest(recipientNickname);
+            setStatus(String.format(
+                        "Game request sent to %s...",
+                        recipientNickname
+                        ));
+        }
     }
 
     public void setStatus(String status) {

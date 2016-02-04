@@ -11,7 +11,7 @@ import java.awt.BorderLayout;
  *
  * @author Tom Galvin
  */
-public class GamePanel extends JPanel implements GameListener {
+public class GamePanel extends JPanel implements GameObserver {
     private Game game;
     private JButtonGrid buttons;
     private JLabel opponentNameLabel, gameStateLabel;

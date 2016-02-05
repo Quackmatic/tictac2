@@ -63,8 +63,8 @@ public class Lobby {
         }
     }
     
-    public void acceptGameRequest(int gameID) {
-        provider.acceptGameRequest(this, gameID);
+    public void respondToGameRequest(int gameID, boolean accept) {
+        provider.respondToGameRequest(this, gameID, accept);
     }
 
     public void gameRequestReceived(String sender, int gameID) {

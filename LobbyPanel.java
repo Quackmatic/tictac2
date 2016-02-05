@@ -103,9 +103,7 @@ public class LobbyPanel extends JPanel implements LobbyObserver {
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE
                 );
-        if(result == JOptionPane.YES_OPTION) {
-            lobby.acceptGameRequest(gameID);
-        }
+        lobby.respondToGameRequest(gameID, result == JOptionPane.YES_OPTION);
     }
 
     public void gameRequestSent(int gameID, String receiver) {

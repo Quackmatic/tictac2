@@ -80,11 +80,19 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
                     handlePacket(inputStream, welcomePacketID);
                 }
 
-                getInitialPlayers(lobby);
+                // getInitialPlayers(lobby);
 
                 while(socket.isConnected() && running) {
                     int packetID = inputStream.readInt();
                     handlePacket(inputStream, packetID);
+                }
+
+                if(running) {
+                    lobby.messageReceived(
+                            "Server closed the connection.",
+                            "Server",
+                            JOptionPane.ERROR_MESSAGE
+                            );
                 }
             } finally {
                 running = false;
@@ -99,7 +107,7 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
         }
     }
 
-    public void handlePacket(DataInputStream i, int packetID) throws IOException {
+    private void handlePacket(DataInputStream i, int packetID) throws IOException {
         switch(packetID) {
             case Packet.SERVER_STATUS: {
                 boolean successfulConnection = i.readBoolean();
@@ -163,6 +171,27 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
                 GamePanel.openGame(game);
                 break;
             }
+            case Packet.SERVER_GAME_UPDATE: {
+                int gameID = i.readInt();
+                boolean canMove = i.readBoolean();
+                int state = i.readInt();
+                if(games.containsKey(gameID)) {
+                    Game game = games.get(gameID);
+                    game.setCanMove(canMove);
+                    game.setGameStatus(state);
+                }
+                break;
+            }
+            case Packet.SERVER_GAME_MOVE: {
+                int gameID = i.readInt();
+                int x = i.readInt();
+                int y = i.readInt();
+                int tileValue = i.readInt();
+                if(games.containsKey(gameID)) {
+                    games.get(gameID).setTileValue(x, y, tileValue);
+                }
+                break;
+            }
             case Packet.SERVER_MESSAGE: {
                 int gameID = i.readInt();
                 String message = i.readUTF();
@@ -179,57 +208,59 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
         }
     }
 
-    public void runSendThread() {
+    private void runSendThread() {
         try {
             while(running && socket.isConnected()) {
                 PacketWriter writer = sendQueue.take();
                 writer.writePacket(outputStream);
             }
-            } catch(IOException e) {
-                System.out.println("IOException in Send Thread.");
-                e.printStackTrace();
-                System.exit(255);
-            } catch(InterruptedException e) {
-                System.out.println("Interrupted in Send Thread.");
-                System.exit(255);
-            }
-        }
-
-        public void sendGameRequest(Lobby lobby, String nickname) {
-            sendQueue.add(o -> {
-                o.writeInt(Packet.CLIENT_REQUEST_SEND);
-                o.writeUTF(nickname);
-            });
-        }
-
-        public void acceptGameRequest(Lobby lobby, int gameID) {
-            sendQueue.add(o -> {
-                o.writeInt(Packet.CLIENT_REQUEST_ACCEPT);
-                o.writeInt(gameID);
-            });
-        }
-
-        public void getInitialPlayers(Lobby lobby) {
-            sendQueue.add(o -> {
-                o.writeInt(Packet.CLIENT_PLAYER_GET_LIST);
-            });
-        }
-
-        public void sendInitialConnectionData(String nickname) {
-            sendQueue.add(o -> {
-                o.writeInt(Packet.CLIENT_CONNECT);
-                o.writeInt(Packet.PROTOCOL_VERSION); // protocol identifier
-                o.writeUTF(nickname);
-                o.writeInt(0); // reserved
-            });
-        }
-
-        public void makeMove(Game game, int x, int y) {
-            sendQueue.add(o -> {
-                o.writeInt(Packet.CLIENT_GAME_MOVE);
-                o.writeInt(game.getGameID());
-                o.writeInt(x);
-                o.writeInt(y);
-            });
+        } catch(IOException e) {
+            System.out.println("IOException in Send Thread.");
+            e.printStackTrace();
+        } catch(InterruptedException e) {
+            System.out.println("Interrupted in Send Thread.");
+            System.exit(255);
         }
     }
+
+    public void sendGameRequest(Lobby lobby, String nickname) {
+        sendQueue.add(o -> {
+            o.writeInt(Packet.CLIENT_REQUEST_SEND);
+            o.writeUTF(nickname);
+        });
+    }
+
+    public void respondToGameRequest(Lobby lobby, int gameID, boolean accept) {
+        sendQueue.add(o -> {
+            o.writeInt(Packet.CLIENT_REQUEST_RESPOND);
+            o.writeInt(gameID);
+            o.writeBoolean(accept);
+        });
+    }
+
+    public void getCC(Lobby lobby) {
+        sendQueue.add(o -> {
+            System.out.println("Sending IP.");
+            o.writeInt(Packet.CLIENT_PLAYER_GET_LIST);
+        });
+    }
+
+    public void sendInitialConnectionData(String nickname) {
+        sendQueue.add(o -> {
+            System.out.println("Sending CC.");
+            o.writeInt(Packet.CLIENT_CONNECT);
+            o.writeInt(Packet.PROTOCOL_VERSION); // protocol identifier
+            o.writeUTF(nickname);
+            o.writeInt(0); // reserved
+        });
+    }
+
+    public void makeMove(Game game, int x, int y) {
+        sendQueue.add(o -> {
+            o.writeInt(Packet.CLIENT_GAME_MOVE);
+            o.writeInt(game.getGameID());
+            o.writeInt(x);
+            o.writeInt(y);
+        });
+    }
+}

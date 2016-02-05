@@ -5,6 +5,6 @@
  */
 public interface LobbyProvider {
     public void sendGameRequest(Lobby lobby, String nickname);
-    public void acceptGameRequest(Lobby lobby, int gameID);
+    public void respondToGameRequest(Lobby lobby, int gameID, boolean accept);
     public void getInitialPlayers(Lobby lobby);
 }

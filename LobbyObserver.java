@@ -46,6 +46,8 @@ public interface LobbyObserver {
      * Invoked when the client receives a message from the server.
      *
      * @param message The message received.
+     * @param title The title of the message.
+     * @param messageType A {@code *_MESSAGE} constant from {@link javax.swing.JOptionPane} indicating the type of the message.
      */
-    public void messageReceived(String message);
+    public void messageReceived(String message, String title, int messageType);
 }

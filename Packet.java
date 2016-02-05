@@ -1,4 +1,6 @@
 public abstract class Packet {
+    public static final int PROTOCOL_VERSION = 1;
+
     public static final int
         CLIENT_CONNECT = 0,
         CLIENT_REQUEST_SEND = 100,
@@ -7,7 +9,7 @@ public abstract class Packet {
         CLIENT_GAME_MOVE = 300;
 
     public static final int
-        SERVER_WELCOME = 0,
+        SERVER_STATUS = 0,
         SERVER_MESSAGE = 1,
         SERVER_REQUEST_SENT = 100,
         SERVER_REQUEST_RECEIVED = 101,

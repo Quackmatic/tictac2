@@ -46,18 +46,38 @@ public class GamePanel extends JPanel implements GameObserver {
         add(buttons = new JButtonGrid(3, 3), BorderLayout.CENTER);
         for(int i = 0; i < 3; i++) {
             for(int j = 0; j < 3; j++) {
-                JButton button = buttons.getButton(i, j);
+                final int x = i, y = j;
+                JButton button = buttons.getButton(x, y);
                 button.setFont(button.getFont().deriveFont(24f));
+                button.addActionListener(e -> {
+                    attemptToMakeMove(x, y);
+                });
             }
         }
     }
 
-    public void gameMessageReceived(String message) {
+    public void attemptToMakeMove(int x, int y) {
+        JButton button = buttons.getButton(x, y);
+        int tileValue = game.getTileValue(x, y);
+        if(tileValue == Game.TILE_SPACE) {
+            button.setEnabled(false);
+            game.makeMove(x, y);
+        } else {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "You cannot place a tile here.",
+                    "Game",
+                    JOptionPane.ERROR_MESSAGE
+                    );
+        }
+    }
+
+    public void gameMessageReceived(String message, String title, int messageType) {
         JOptionPane.showMessageDialog(
                 this,
                 message,
-                "Server Message",
-                JOptionPane.INFORMATION_MESSAGE
+                title,
+                messageType
                 );
     }
 

@@ -29,9 +29,9 @@ public class Lobby {
         return players.keySet().toArray(new String[0]);
     }
 
-    public void messageReceived(String message) {
+    public void messageReceived(String message, String title, int messageType) {
         for(LobbyObserver observer : observers) {
-            observer.messageReceived(message);
+            observer.messageReceived(message, title, messageType);
         }
     }
 

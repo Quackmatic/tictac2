@@ -83,9 +83,9 @@ public class Game {
         return gameID;
     }
 
-    public void gameMessageReceived(String message) {
+    public void gameMessageReceived(String message, String title, int messageType) {
         for(GameObserver observer : observers) {
-            observer.gameMessageReceived(message);
+            observer.gameMessageReceived(message, title, messageType);
         }
     }
 

@@ -2,12 +2,15 @@ import java.io.*;
 import java.net.*;
 import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import javax.swing.JOptionPane;
 
 public class Client implements Runnable, LobbyProvider, GameProvider {
+
     private Socket socket;
     private Lobby lobby;
     private HashMap<Integer, Game> games;
 
+    private String localNickname;
     private String hostName;
     private int port;
 
@@ -37,11 +40,12 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
             int port = Integer.valueOf(args[1]);
             String machineName = args[2];
 
-            new Client(machineName, port).run();
+            new Client(nickname, machineName, port).run();
         }
     }
 
-    public Client(String hostName, int port) {
+    public Client(String localNickname, String hostName, int port) {
+        this.localNickname = localNickname;
         this.hostName = hostName;
         this.port = port;
 
@@ -63,6 +67,21 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
                 sendThread = new Thread(() -> runSendThread());
                 sendThread.run();
 
+                sendInitialConnectionData(localNickname);
+
+                int welcomePacketID = inputStream.readInt();
+                if(welcomePacketID != Packet.SERVER_STATUS) {
+                    lobby.messageReceived(
+                            "Invalid welcome packet from server.",
+                            "Connection Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    System.exit(1);
+                } else {
+                    handlePacket(inputStream, welcomePacketID);
+                }
+
+                getInitialPlayers(lobby);
+
                 while(socket.isConnected() && running) {
                     int packetID = inputStream.readInt();
                     handlePacket(inputStream, packetID);
@@ -82,10 +101,29 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
 
     public void handlePacket(DataInputStream i, int packetID) throws IOException {
         switch(packetID) {
-            case Packet.SERVER_WELCOME: {
-                throw new UnsupportedOperationException(
-                        "Only one SERVER_WELCOME packet should be received " +
-                        "per connection.");
+            case Packet.SERVER_STATUS: {
+                boolean successfulConnection = i.readBoolean();
+                if(!successfulConnection) {
+                    String serverErrorMessage = i.readUTF();
+                    lobby.messageReceived(
+                            String.format("Server says:\n%s", serverErrorMessage),
+                            "Server Error",
+                            JOptionPane.ERROR_MESSAGE
+                            );
+                    System.exit(1);
+                }
+                String serverNickname = i.readUTF();
+                if(!serverNickname.equals(localNickname)) {
+                    lobby.messageReceived(
+                            String.format("The nickname %s is taken or not allowed, so " +
+                                          "the server changed your nickname to %s.",
+                                          localNickname,
+                                          serverNickname),
+                            "Nickname Changed",
+                            JOptionPane.WARNING_MESSAGE);
+                    localNickname = serverNickname;
+                }
+                break;
             }
             case Packet.SERVER_REQUEST_SENT: {
                 int gameID = i.readInt();
@@ -128,11 +166,13 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
             case Packet.SERVER_MESSAGE: {
                 int gameID = i.readInt();
                 String message = i.readUTF();
+                String title = i.readUTF();
+                int messageType = i.readInt();
                 
                 if(gameID == -1 || !games.containsKey(gameID)) {
-                    lobby.messageReceived(message);
+                    lobby.messageReceived(message, title, messageType);
                 } else {
-                    games.get(gameID).gameMessageReceived(message);
+                    games.get(gameID).gameMessageReceived(message, title, messageType);
                 }
                 break;
             }
@@ -145,42 +185,51 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
                 PacketWriter writer = sendQueue.take();
                 writer.writePacket(outputStream);
             }
-        } catch(IOException e) {
-            System.out.println("IOException in Send Thread.");
-            e.printStackTrace();
-            System.exit(255);
-        } catch(InterruptedException e) {
-            System.out.println("Interrupted in Send Thread.");
-            System.exit(255);
+            } catch(IOException e) {
+                System.out.println("IOException in Send Thread.");
+                e.printStackTrace();
+                System.exit(255);
+            } catch(InterruptedException e) {
+                System.out.println("Interrupted in Send Thread.");
+                System.exit(255);
+            }
+        }
+
+        public void sendGameRequest(Lobby lobby, String nickname) {
+            sendQueue.add(o -> {
+                o.writeInt(Packet.CLIENT_REQUEST_SEND);
+                o.writeUTF(nickname);
+            });
+        }
+
+        public void acceptGameRequest(Lobby lobby, int gameID) {
+            sendQueue.add(o -> {
+                o.writeInt(Packet.CLIENT_REQUEST_ACCEPT);
+                o.writeInt(gameID);
+            });
+        }
+
+        public void getInitialPlayers(Lobby lobby) {
+            sendQueue.add(o -> {
+                o.writeInt(Packet.CLIENT_PLAYER_GET_LIST);
+            });
+        }
+
+        public void sendInitialConnectionData(String nickname) {
+            sendQueue.add(o -> {
+                o.writeInt(Packet.CLIENT_CONNECT);
+                o.writeInt(Packet.PROTOCOL_VERSION); // protocol identifier
+                o.writeUTF(nickname);
+                o.writeInt(0); // reserved
+            });
+        }
+
+        public void makeMove(Game game, int x, int y) {
+            sendQueue.add(o -> {
+                o.writeInt(Packet.CLIENT_GAME_MOVE);
+                o.writeInt(game.getGameID());
+                o.writeInt(x);
+                o.writeInt(y);
+            });
         }
     }
-
-    public void sendGameRequest(Lobby lobby, String nickname) {
-        sendQueue.add(o -> {
-            o.writeInt(Packet.CLIENT_REQUEST_SEND);
-            o.writeUTF(nickname);
-        });
-    }
-
-    public void acceptGameRequest(Lobby lobby, int gameID) {
-        sendQueue.add(o -> {
-            o.writeInt(Packet.CLIENT_REQUEST_ACCEPT);
-            o.writeInt(gameID);
-        });
-    }
-
-    public void getInitialPlayers(Lobby lobby) {
-        sendQueue.add(o -> {
-            o.writeInt(Packet.CLIENT_PLAYER_GET_LIST);
-        });
-    }
-
-    public void makeMove(Game game, int x, int y) {
-        sendQueue.add(o -> {
-            o.writeInt(Packet.CLIENT_GAME_MOVE);
-            o.writeInt(game.getGameID());
-            o.writeInt(x);
-            o.writeInt(y);
-        });
-    }
-}

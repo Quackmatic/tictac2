@@ -69,12 +69,12 @@ public class LobbyPanel extends JPanel implements LobbyObserver {
         statusLabel.setText(status);
     }
 
-    public void messageReceived(String message) {
+    public void messageReceived(String message, String title, int messageType) {
         JOptionPane.showMessageDialog(
                 this,
                 message,
-                "Server Message",
-                JOptionPane.INFORMATION_MESSAGE
+                title,
+                messageType
                 );
     }
 

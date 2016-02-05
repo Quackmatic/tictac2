@@ -25,6 +25,8 @@ public interface GameObserver {
      * Invoked when the client receives a game-related message from the server.
      *
      * @param message The received message.
+     * @param title The title of the message.
+     * @param messageType A {@code *_MESSAGE} constant from {@link javax.swing.JOptionPane} indicating the type of the message.
      */
-    public void gameMessageReceived(String message);
+    public void gameMessageReceived(String message, String title, int messageType);
 }

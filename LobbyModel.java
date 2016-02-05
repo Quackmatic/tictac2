@@ -37,7 +37,7 @@ public class LobbyModel extends AbstractTableModel implements LobbyObserver {
         }
     }
 
-    public void messageReceived(String message) {
+    public void messageReceived(String message, String title, int messageType) {
         // nothing
     }
 

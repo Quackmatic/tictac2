@@ -30,6 +30,8 @@ public class Server implements Runnable {
     public ServerGame createGame(ServerThread initiator, ServerThread opponent) {
         ServerGame game = new ServerGame(this, currentGameID++, initiator, opponent);
         games.put(game.getGameID(), game);
+        initiator.addToGame(game);
+        opponent.addToGame(game);
         return game;
     }
 
@@ -44,6 +46,8 @@ public class Server implements Runnable {
     public void removeGame(ServerGame game) {
         if(games.containsKey(game.getGameID())) {
             games.remove(game.getGameID());
+            game.getNought().removeFromGame(game);
+            game.getCross().removeFromGame(game);
         }
     }
 
@@ -140,14 +144,14 @@ public class Server implements Runnable {
     }
 
     public void playerLeave(ServerThread _thread) {
+        final ServerThread thread = _thread;
         if(clients.containsKey(_thread.getNickname())) {
-            clients.remove(_thread.getNickname());
+            clients.remove(thread.getNickname());
         }
 
-        final ServerThread thread = _thread;
         doToAllClients(t -> {
             if(thread != t) {
-                thread.sendPlayerLeave(thread);
+                t.sendPlayerLeave(thread);
             }
         });
     }
@@ -156,7 +160,7 @@ public class Server implements Runnable {
         final ServerThread thread = _thread;
         doToAllClients(t -> {
             if(thread != t) {
-                thread.sendPlayerUpdate(thread);
+                t.sendPlayerUpdate(thread);
             }
         });
 

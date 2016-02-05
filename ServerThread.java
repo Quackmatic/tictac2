@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.*;
 import javax.swing.JOptionPane;
+import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class ServerThread implements Runnable {
@@ -11,6 +12,7 @@ public class ServerThread implements Runnable {
     private LinkedBlockingQueue<PacketWriter> sendQueue;
     private String nickname;
     private int score;
+    private ArrayList<ServerGame> currentGames;
 
     public ServerThread(
             Server server,
@@ -25,6 +27,17 @@ public class ServerThread implements Runnable {
         this.client = client;
         this.in = inputStream;
         this.out = outputStream;
+
+        this.currentGames = new ArrayList<ServerGame>();
+        this.sendQueue = new LinkedBlockingQueue<PacketWriter>();
+    }
+
+    public void addToGame(ServerGame game) {
+        currentGames.add(game);
+    }
+
+    public void removeFromGame(ServerGame game) {
+        currentGames.remove(game);
     }
 
     public String getNickname() {
@@ -43,15 +56,22 @@ public class ServerThread implements Runnable {
     @Override
     public void run() {
         try {
+            new Thread(() -> runSendThread()).start();
             server.playerUpdate(this);
             while(client.isConnected()) {
                 int packetID = in.readInt();
                 handlePacket(packetID);
             }
             server.playerLeave(this);
+        } catch(EOFException e) {
+            System.out.println("Client quit.");
+            server.playerLeave(this);
         } catch(IOException e) {
             System.out.println("IOException in ServerThread");
             e.printStackTrace();
+        }
+        for(ServerGame game : currentGames) {
+            game.terminateGame(this, getNickname() + " disconnected.");
         }
     }
 
@@ -87,7 +107,9 @@ public class ServerThread implements Runnable {
             case Packet.CLIENT_PLAYER_GET_LIST: {
                 final ServerThread _this = this;
                 server.doToAllClients(t -> {
-                    _this.sendPlayerUpdate(t);
+                    if(_this != t) {
+                        _this.sendPlayerUpdate(t);
+                    }
                 });
                 break;
             }
@@ -98,6 +120,16 @@ public class ServerThread implements Runnable {
                 ServerGame game = server.getGame(gameID);
                 if(game != null) {
                     game.makeMove(this, x, y);
+                } else {
+                    sendMessage(null, "That game does not exist.", "Game", JOptionPane.ERROR_MESSAGE);
+                }
+                break;
+            }
+            case Packet.CLIENT_GAME_FORFEIT: {
+                int gameID = in.readInt();
+                ServerGame game = server.getGame(gameID);
+                if(game != null) {
+                    game.terminateGame(this, getNickname() + " forfeit.");
                 } else {
                     sendMessage(null, "That game does not exist.", "Game", JOptionPane.ERROR_MESSAGE);
                 }
@@ -120,6 +152,7 @@ public class ServerThread implements Runnable {
     public void sendGameBegin(ServerGame game, ServerThread opponent, int playingAs) {
         sendQueue.add(o -> {
             o.writeInt(Packet.SERVER_GAME_BEGIN);
+            o.writeInt(game.getGameID());
             o.writeUTF(opponent.getNickname());
             o.writeInt(playingAs);
         });

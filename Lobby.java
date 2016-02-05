@@ -13,8 +13,6 @@ public class Lobby {
 
         players = new HashMap<String, Integer>();
         observers = new ArrayList<LobbyObserver>();
-
-        this.provider.getInitialPlayers(this);
     }
 
     protected int getLobbyID() {

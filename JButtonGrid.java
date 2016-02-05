@@ -11,6 +11,7 @@ public class JButtonGrid extends JPanel {
         this.width = width;
         this.height = height;
         this.buttons = new JButton[width][height];
+
         for(int y = 0; y < height; y++) {
             for(int x = 0; x < width; x++) {
                 add(buttons[x][y] = new JButton());
@@ -18,11 +19,11 @@ public class JButtonGrid extends JPanel {
         }
     }
 
-    public int getWidth() {
+    public int getColumns() {
         return width;
     }
 
-    public int getHeight() {
+    public int getRows() {
         return height;
     }
 

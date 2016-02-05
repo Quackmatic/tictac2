@@ -5,6 +5,8 @@ import javax.swing.JLabel;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import java.awt.BorderLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 /**
  * A panel showing the state of a game.
@@ -24,15 +26,25 @@ public class GamePanel extends JPanel implements GameObserver {
                     game.getRemotePlayerNickname()
                     )
                 );
+        frame.setVisible(true);
         frame.add(new GamePanel(game, frame));
         frame.setSize(300, 340);
-        frame.setVisible(true);
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if(game.getGameStatus() == Game.GAME_IN_PROGRESS) {
+                    game.forfeit();
+                }
+            }
+        });
     }
 
     public GamePanel(Game game, JFrame parentFrame) {
         super(new BorderLayout());
         this.game = game;
         this.parentFrame = parentFrame;
+
+        this.game.addGameObserver(this);
 
         add(opponentNameLabel = new JLabel(
                     String.format(
@@ -104,6 +116,20 @@ public class GamePanel extends JPanel implements GameObserver {
                                 Game.getTileString(game.getRemotePlayer())
                                 ));
                 }
+                break;
+            case Game.GAME_DRAW:
+                gameStateLabel.setText("You have tied.");
+                JOptionPane.showMessageDialog(
+                        this,
+                        String.format(
+                            "You have tied against %s.",
+                            game.getRemotePlayerNickname()
+                            ),
+                        "Game Finished",
+                        JOptionPane.INFORMATION_MESSAGE
+                        );
+
+                tryToCloseWindow(parentFrame);
                 break;
             case Game.GAME_LOST:
                 gameStateLabel.setText("You have lost!");

@@ -1,11 +1,14 @@
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
+import javax.swing.JTable;
 
 public class LobbyModel extends AbstractTableModel implements LobbyObserver {
     private Lobby lobby;
     private ArrayList<String> nicknames;
+    private JTable table;
 
-    public LobbyModel(Lobby lobby) {
+    public LobbyModel(JTable table, Lobby lobby) {
+        this.table = table;
         this.lobby = lobby;
         this.nicknames = new ArrayList<String>();
 
@@ -26,6 +29,9 @@ public class LobbyModel extends AbstractTableModel implements LobbyObserver {
 
     public Object getValueAt(int row, int column) {
         String name = nicknames.get(row);
+        if(name == null) {
+            return "?";
+        }
         if(column == 0) {
             return name;
         } else if(column == 1) {
@@ -42,18 +48,21 @@ public class LobbyModel extends AbstractTableModel implements LobbyObserver {
     }
 
     public void playerEnter(String nickname, int score) {
-        if(!nicknames.contains(nickname)) {
+        if(nicknames.contains(nickname)) {
             int row = nicknames.indexOf(nickname);
             fireTableCellUpdated(row, 1);
         } else {
-            nicknames.add(nickname);
             fireTableRowsInserted(nicknames.size(), nicknames.size());
+            nicknames.add(nickname);
         }
+
+        fireTableDataChanged();
     }
 
     public void playerLeave(String nickname) {
         int row = nicknames.indexOf(nickname);
         fireTableRowsDeleted(row, row);
+        nicknames.remove(row);
     }
     
     public String getColumnName(int column) {

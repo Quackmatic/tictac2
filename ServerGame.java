@@ -70,27 +70,61 @@ public class ServerGame {
     public boolean isGameWon() {
         // check vert. rows
         for(int x = 0; x < 3; x++) {
-            if(gameBoard[x][0] == gameBoard[x][1] && gameBoard[x][1] == gameBoard[x][2]) {
+            if(gameBoard[x][0] != Game.TILE_SPACE &&
+                    gameBoard[x][0] == gameBoard[x][1] && gameBoard[x][1] == gameBoard[x][2]) {
                 return true;
             }
         }
         // check hoz. rows
         for(int y = 0; y < 3; y++) {
-            if(gameBoard[0][y] == gameBoard[1][y] && gameBoard[1][y] == gameBoard[2][y]) {
+            if(gameBoard[0][y] != Game.TILE_SPACE &&
+                    gameBoard[0][y] == gameBoard[1][y] && gameBoard[1][y] == gameBoard[2][y]) {
                 return true;
             }
         }
         // check diagonals
-        if(gameBoard[0][0] == gameBoard[1][1] && gameBoard[1][1] == gameBoard[2][2] ||
+        if(gameBoard[0][0] != Game.TILE_SPACE &&
+           gameBoard[0][0] == gameBoard[1][1] && gameBoard[1][1] == gameBoard[2][2] ||
+           gameBoard[0][2] != Game.TILE_SPACE &&
            gameBoard[0][2] == gameBoard[1][1] && gameBoard[1][1] == gameBoard[2][0]) {
             return true;
         }
         return false;
     }
 
+    private boolean isBoardFull() {
+        for(int i = 0; i < 3; i++) {
+            for(int j = 0; j < 3; j++) {
+                if (gameBoard[i][j] == Game.TILE_SPACE) return false;
+            }
+        }
+
+        return true;
+    }
+
     private void sendGameUpdate() {
         cross.sendGameUpdate(this, currentPlayer == cross, Game.GAME_IN_PROGRESS);
         nought.sendGameUpdate(this, currentPlayer == nought, Game.GAME_IN_PROGRESS);
+    }
+
+    public void terminateGame(ServerThread leaver, String reason) {
+        ServerThread[] players = { nought, cross };
+        for(ServerThread player : players) {
+            if(player != leaver) {
+                player.sendMessage(
+                        this,
+                        "This game has terminated early because:\n" + reason,
+                        "Game Terminated",
+                        JOptionPane.ERROR_MESSAGE
+                        );
+                player.sendGameUpdate(
+                        this,
+                        false,
+                        Game.GAME_DRAW
+                        );
+                server.removeGame(this);
+            }
+        }
     }
 
     public void makeMove(ServerThread player, int x, int y) {
@@ -118,6 +152,20 @@ public class ServerGame {
                             this,
                             false,
                             currentPlayer == nought ? Game.GAME_WON : Game.GAME_LOST
+                            );
+                    currentPlayer.setScore(currentPlayer.getScore() + 1);
+                    currentPlayer = null;
+                    server.removeGame(this);
+                } else if(isBoardFull()) {
+                    cross.sendGameUpdate(
+                            this,
+                            false,
+                            Game.GAME_DRAW
+                            );
+                    nought.sendGameUpdate(
+                            this,
+                            false,
+                            Game.GAME_DRAW
                             );
                     currentPlayer = null;
                     server.removeGame(this);

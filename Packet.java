@@ -6,7 +6,8 @@ public abstract class Packet {
         CLIENT_REQUEST_SEND = 100,
         CLIENT_REQUEST_RESPOND = 101,
         CLIENT_PLAYER_GET_LIST = 200,
-        CLIENT_GAME_MOVE = 300;
+        CLIENT_GAME_MOVE = 300,
+        CLIENT_GAME_FORFEIT = 301;
 
     public static final int
         SERVER_STATUS = 0,

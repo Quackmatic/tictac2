@@ -13,4 +13,11 @@ public interface GameProvider {
      * @param y The Y co-ordinate (between 0 and 2).
      */
     public void makeMove(Game game, int x, int y);
+
+    /**
+     * Invoked when the local player forfeits the game.
+     *
+     * @param game The game which the local player is forfeiting.
+     */
+    public void forfeit(Game game);
 }

@@ -13,6 +13,7 @@ public class Game {
     public static final int GAME_IN_PROGRESS = 0;
     public static final int GAME_WON         = 1;
     public static final int GAME_LOST        = 2;
+    public static final int GAME_DRAW        = 3;
 
     private ArrayList<GameObserver> observers;
     private GameProvider provider;
@@ -126,7 +127,8 @@ public class Game {
     public void setGameStatus(int status) {
         if(status == Game.GAME_IN_PROGRESS ||
            status == Game.GAME_WON ||
-           status == Game.GAME_LOST) {
+           status == Game.GAME_LOST ||
+           status == Game.GAME_DRAW) {
             gameStatus = status;
             for(GameObserver observer : observers) {
                 observer.gameStateChanged(gameStatus, canMove);
@@ -202,6 +204,10 @@ public class Game {
      */
     public void makeMove(int x, int y) {
         provider.makeMove(this, x, y);
+    }
+
+    public void forfeit() {
+        provider.forfeit(this);
     }
 
     /**

@@ -30,10 +30,11 @@ public class LobbyPanel extends JPanel implements LobbyObserver {
         super(new BorderLayout());
         this.lobby = lobby;
 
-        this.playerTable = new JTable(new LobbyModel(lobby));
+        this.playerTable = new JTable(new LobbyModel(this.playerTable, lobby));
         add(new JScrollPane(this.playerTable));
         this.playerTable.setFillsViewportHeight(true);
         this.playerTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        this.playerTable.getColumnModel().getColumn(1).setWidth(48);
         this.lobby.addObserver(this);
 
         add(statusLabel = new JLabel("Welcome to TicTac2!"),

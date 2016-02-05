@@ -5,7 +5,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import javax.swing.JOptionPane;
 
 public class Client implements Runnable, LobbyProvider, GameProvider {
-
     private Socket socket;
     private Lobby lobby;
     private HashMap<Integer, Game> games;
@@ -65,7 +64,7 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
                 LobbyPanel.openLobby(lobby);
 
                 sendThread = new Thread(() -> runSendThread());
-                sendThread.run();
+                sendThread.start();
 
                 sendInitialConnectionData(localNickname);
 
@@ -80,7 +79,7 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
                     handlePacket(inputStream, welcomePacketID);
                 }
 
-                // getInitialPlayers(lobby);
+                getInitialPlayers(lobby);
 
                 while(socket.isConnected() && running) {
                     int packetID = inputStream.readInt();
@@ -103,6 +102,8 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
                     hostName));
             e.printStackTrace();
         } catch(IOException e) {
+            e.printStackTrace();
+        } catch(Exception e) {
             e.printStackTrace();
         }
     }
@@ -238,16 +239,14 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
         });
     }
 
-    public void getCC(Lobby lobby) {
+    public void getInitialPlayers(Lobby lobby) {
         sendQueue.add(o -> {
-            System.out.println("Sending IP.");
             o.writeInt(Packet.CLIENT_PLAYER_GET_LIST);
         });
     }
 
     public void sendInitialConnectionData(String nickname) {
         sendQueue.add(o -> {
-            System.out.println("Sending CC.");
             o.writeInt(Packet.CLIENT_CONNECT);
             o.writeInt(Packet.PROTOCOL_VERSION); // protocol identifier
             o.writeUTF(nickname);
@@ -261,6 +260,13 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
             o.writeInt(game.getGameID());
             o.writeInt(x);
             o.writeInt(y);
+        });
+    }
+
+    public void forfeit(Game game) {
+        sendQueue.add(o -> {
+            o.writeInt(Packet.CLIENT_GAME_FORFEIT);
+            o.writeInt(game.getGameID());
         });
     }
 }

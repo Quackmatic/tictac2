@@ -20,4 +20,12 @@ public interface GameProvider {
      * @param game The game which the local player is forfeiting.
      */
     public void forfeit(Game game);
+
+    /**
+     * Invoked when the game recognises that it has terminated, and that the
+     * game may be removed from any internal game maps.
+     *
+     * @param game The game which is to be removed.
+     */
+    public void remove(Game game);
 }

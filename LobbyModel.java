@@ -2,11 +2,23 @@ import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 import javax.swing.JTable;
 
+/**
+ * The model class required by a {@code JTable} to represent the
+ * data and notify the JTable of changes to the data. In this case
+ * the data is the people in a lobby.
+ */
 public class LobbyModel extends AbstractTableModel implements LobbyObserver {
     private Lobby lobby;
     private ArrayList<String> nicknames;
     private JTable table;
 
+    /**
+     * Create a new LobbyModel associated with the given table and 
+     * representing the given lobby.
+     *
+     * @param table The table which this model is associated to.
+     * @param lobby The lobby which this model represents.
+     */
     public LobbyModel(JTable table, Lobby lobby) {
         this.table = table;
         this.lobby = lobby;
@@ -19,14 +31,17 @@ public class LobbyModel extends AbstractTableModel implements LobbyObserver {
         }
     }
 
+    @Override
     public int getRowCount() {
         return nicknames.size();
     }
 
+    @Override
     public int getColumnCount() {
         return 2;
     }
 
+    @Override
     public Object getValueAt(int row, int column) {
         String name = nicknames.get(row);
         if(name == null) {
@@ -43,10 +58,12 @@ public class LobbyModel extends AbstractTableModel implements LobbyObserver {
         }
     }
 
+    @Override
     public void messageReceived(String message, String title, int messageType) {
         // nothing
     }
 
+    @Override
     public void playerEnter(String nickname, int score) {
         if(nicknames.contains(nickname)) {
             int row = nicknames.indexOf(nickname);
@@ -59,12 +76,14 @@ public class LobbyModel extends AbstractTableModel implements LobbyObserver {
         fireTableDataChanged();
     }
 
+    @Override
     public void playerLeave(String nickname) {
         int row = nicknames.indexOf(nickname);
         fireTableRowsDeleted(row, row);
         nicknames.remove(row);
     }
     
+    @Override
     public String getColumnName(int column) {
         switch(column) {
             case 0: return "Nickname";
@@ -79,14 +98,17 @@ public class LobbyModel extends AbstractTableModel implements LobbyObserver {
         }
     }
 
+    @Override
     public void gameRequestReceived(int gameID, String sender) {
         // nothing
     }
 
+    @Override
     public void gameRequestSent(int gameID, String receiver) {
         // nothing
     }
      
+    @Override
     public void gameStarted(Game game) {
         // nothing
     }

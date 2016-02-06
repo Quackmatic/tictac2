@@ -4,6 +4,11 @@ import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.swing.JOptionPane;
 
+/**
+ * Represents the client networking backend for the tictac2 game.
+ *
+ * @author Tom Galvin
+ */
 public class Client implements Runnable, LobbyProvider, GameProvider {
     private Socket socket;
     private Lobby lobby;
@@ -21,6 +26,9 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
 
     private boolean running = true;
 
+    /**
+     * Disconnects the client from the server.
+     */
     public void disconnect() {
         running = false;
     }
@@ -43,6 +51,13 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
         }
     }
 
+    /**
+     * Create a new Client object instance.
+     *
+     * @param localNickname The local nickname with which to connect to the server.
+     * @param hostName The hostname of the server.
+     * @param port The port on which the server listens.
+     */
     public Client(String localNickname, String hostName, int port) {
         this.localNickname = localNickname;
         this.hostName = hostName;
@@ -53,6 +68,21 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
         this.sendQueue = new LinkedBlockingQueue<PacketWriter>();
     }
 
+    /**
+     * Removes the given game from the record of current games.
+     *
+     * @param game The game to remove from the internal map of games.
+     */
+    public void removeGame(Game game) {
+        if(games.containsKey(game.getGameID())) {
+            games.remove(game.getGameID());
+        }
+    }
+
+    /**
+     * Runs the client.
+     */
+    @Override
     public void run() {
         try {
             socket = new Socket(hostName, port);
@@ -61,7 +91,6 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
                 this.outputStream = outputStream;
 
                 lobby = new Lobby(0, this);
-                LobbyPanel.openLobby(lobby);
 
                 sendThread = new Thread(() -> runSendThread());
                 sendThread.start();
@@ -79,6 +108,7 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
                     handlePacket(inputStream, welcomePacketID);
                 }
 
+                LobbyPanel.openLobby(localNickname, lobby);
                 getInitialPlayers(lobby);
 
                 while(socket.isConnected() && running) {
@@ -108,6 +138,15 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
         }
     }
 
+    /**
+     * Handles the packet on the input stream {@code i} with the given
+     * {@code packetID}. It does this by reading the remainder of the
+     * packet from the input stream.
+     *
+     * @param i The {@link java.io.DataInputStream} from which to read
+     * the remainder of the packet.
+     * @param packetID The ID of the packet to handle.
+     */
     private void handlePacket(DataInputStream i, int packetID) throws IOException {
         switch(packetID) {
             case Packet.SERVER_STATUS: {
@@ -209,6 +248,12 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
         }
     }
 
+    /**
+     * The main thread body for the thread used to send data to the server.
+     * Taking this approach (calling this method from a lambda-expression,
+     * rather than using a separate {@link Runnable} object, is mainly to
+     * keep similar concerns together in the same class.
+     */
     private void runSendThread() {
         try {
             while(running && socket.isConnected()) {
@@ -224,6 +269,7 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
         }
     }
 
+    @Override
     public void sendGameRequest(Lobby lobby, String nickname) {
         sendQueue.add(o -> {
             o.writeInt(Packet.CLIENT_REQUEST_SEND);
@@ -231,6 +277,7 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
         });
     }
 
+    @Override
     public void respondToGameRequest(Lobby lobby, int gameID, boolean accept) {
         sendQueue.add(o -> {
             o.writeInt(Packet.CLIENT_REQUEST_RESPOND);
@@ -239,12 +286,21 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
         });
     }
 
+    @Override
     public void getInitialPlayers(Lobby lobby) {
         sendQueue.add(o -> {
             o.writeInt(Packet.CLIENT_PLAYER_GET_LIST);
         });
     }
 
+    /**
+     * Sends a packet with initial data about the connection to the
+     * server, including the desired nickname, version information,
+     * and reserved space for any future protocol expansions (good
+     * practice).
+     *
+     * @param nickname The desired username specified by the client.
+     */
     public void sendInitialConnectionData(String nickname) {
         sendQueue.add(o -> {
             o.writeInt(Packet.CLIENT_CONNECT);
@@ -254,6 +310,7 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
         });
     }
 
+    @Override
     public void makeMove(Game game, int x, int y) {
         sendQueue.add(o -> {
             o.writeInt(Packet.CLIENT_GAME_MOVE);
@@ -263,10 +320,16 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
         });
     }
 
+    @Override
     public void forfeit(Game game) {
         sendQueue.add(o -> {
             o.writeInt(Packet.CLIENT_GAME_FORFEIT);
             o.writeInt(game.getGameID());
         });
+    }
+
+    @Override
+    public void remove(Game game) {
+        games.remove(game);
     }
 }

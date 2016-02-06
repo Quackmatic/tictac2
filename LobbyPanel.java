@@ -18,14 +18,25 @@ public class LobbyPanel extends JPanel implements LobbyObserver {
     private JLabel statusLabel;
     private Lobby lobby;
 
-    public static void openLobby(Lobby lobby) {
-        JFrame frame = new JFrame("Game Lobby");
+    /**
+     * Open a LobbyPanel representing the given lobby.
+     *
+     * @param nickname The nickname to use in the window title.
+     * @param lobby The lobby to be displayed in the new LobbyPanel.
+     */
+    public static void openLobby(String nickname, Lobby lobby) {
+        JFrame frame = new JFrame(nickname + " - tictac2");
         frame.add(new LobbyPanel(lobby));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(300, 340);
         frame.setVisible(true);
     }
 
+    /**
+     * Create a new LobbyPanel displaying the given lobby.
+     *
+     * @param lobby The lobby to be displayed in this LobbyPanel.
+     */
     public LobbyPanel(Lobby lobby) {
         super(new BorderLayout());
         this.lobby = lobby;
@@ -45,6 +56,9 @@ public class LobbyPanel extends JPanel implements LobbyObserver {
         add(challengeButton, BorderLayout.SOUTH);
     }
 
+    /**
+     * Send a game challenge to the currently-selected user.
+     */
     private void sendChallenge() {
         int selectedRow = playerTable.getSelectedRow();
         if(selectedRow == -1) {
@@ -66,10 +80,16 @@ public class LobbyPanel extends JPanel implements LobbyObserver {
         }
     }
 
+    /**
+     * Set the status label text.
+     *
+     * @param status The text to set the label text to.
+     */
     public void setStatus(String status) {
         statusLabel.setText(status);
     }
 
+    @Override
     public void messageReceived(String message, String title, int messageType) {
         JOptionPane.showMessageDialog(
                 this,
@@ -79,6 +99,7 @@ public class LobbyPanel extends JPanel implements LobbyObserver {
                 );
     }
 
+    @Override
     public void playerEnter(String nickname, int score) {
         setStatus(String.format(
                     "%s has joined the lobby.",
@@ -86,6 +107,7 @@ public class LobbyPanel extends JPanel implements LobbyObserver {
                     ));
     }
 
+    @Override
     public void playerLeave(String nickname) {
         setStatus(String.format(
                     "%s has left the lobby.",
@@ -93,6 +115,7 @@ public class LobbyPanel extends JPanel implements LobbyObserver {
                     ));
     }
 
+    @Override
     public void gameRequestReceived(int gameID, String sender) {
         int result = JOptionPane.showConfirmDialog(
                 this,
@@ -107,6 +130,7 @@ public class LobbyPanel extends JPanel implements LobbyObserver {
         lobby.respondToGameRequest(gameID, result == JOptionPane.YES_OPTION);
     }
 
+    @Override
     public void gameRequestSent(int gameID, String receiver) {
         if(gameID == -1) {
             JOptionPane.showMessageDialog(
@@ -125,6 +149,7 @@ public class LobbyPanel extends JPanel implements LobbyObserver {
         }
     }
 
+    @Override
     public void gameStarted(Game game) {
         GamePanel.openGame(game);
     }

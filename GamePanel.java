@@ -19,6 +19,11 @@ public class GamePanel extends JPanel implements GameObserver {
     private JLabel opponentNameLabel, gameStateLabel;
     private JFrame parentFrame;
 
+    /**
+     * Opens a {@link GamePanel} for the given game.
+     *
+     * @param game The game for which to open a new GamePanel.
+     */
     public static void openGame(Game game) {
         JFrame frame = new JFrame(
                 String.format(
@@ -39,6 +44,13 @@ public class GamePanel extends JPanel implements GameObserver {
         });
     }
 
+    /**
+     * Create a new GamePanel for the given game, and inside the given parent
+     * JFrame.
+     *
+     * @param game The game which this GamePanel will display.
+     * @param parentFrame The frame in which this GamePanel will appear.
+     */
     public GamePanel(Game game, JFrame parentFrame) {
         super(new BorderLayout());
         this.game = game;
@@ -68,6 +80,12 @@ public class GamePanel extends JPanel implements GameObserver {
         }
     }
 
+    /**
+     * Attempt to make a move at the given co-ordinate.
+     *
+     * @param x The X co-ordinate (between 0 and 2).
+     * @param y The Y co-ordinate (between 0 and 2).
+     */
     public void attemptToMakeMove(int x, int y) {
         JButton button = buttons.getButton(x, y);
         int tileValue = game.getTileValue(x, y);
@@ -84,6 +102,7 @@ public class GamePanel extends JPanel implements GameObserver {
         }
     }
 
+    @Override
     public void gameMessageReceived(String message, String title, int messageType) {
         JOptionPane.showMessageDialog(
                 this,
@@ -93,11 +112,13 @@ public class GamePanel extends JPanel implements GameObserver {
                 );
     }
 
+    @Override
     public void gameTileChanged(int x, int y, int value) {
         String text = Game.getTileString(value);
         buttons.getButton(x, y).setText(text);
     }
 
+    @Override
     public void gameStateChanged(int state, boolean canMove) {
         buttons.setEnabled(canMove);
         switch(state) {
@@ -129,6 +150,7 @@ public class GamePanel extends JPanel implements GameObserver {
                         JOptionPane.INFORMATION_MESSAGE
                         );
 
+                game.remove();
                 tryToCloseWindow(parentFrame);
                 break;
             case Game.GAME_LOST:
@@ -143,6 +165,7 @@ public class GamePanel extends JPanel implements GameObserver {
                         JOptionPane.INFORMATION_MESSAGE
                         );
 
+                game.remove();
                 tryToCloseWindow(parentFrame);
                 break;
             case Game.GAME_WON:
@@ -158,11 +181,17 @@ public class GamePanel extends JPanel implements GameObserver {
                         );
 
 
+                game.remove();
                 tryToCloseWindow(parentFrame);
                 break;
         }
     }
 
+    /**
+     * Try to close the window associated with this GamePanel.
+     *
+     * @param frame The frame associated with this GamePanel.
+     */
     private void tryToCloseWindow(JFrame frame) {
         if(frame != null) {
             frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));

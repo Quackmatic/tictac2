@@ -80,10 +80,27 @@ public class Game {
         }
     }
 
+    /**
+     * Gets the game ID of this game, for identification over the
+     * network.
+     *
+     * @return The game ID of the game represented by this object.
+     */
     protected int getGameID() {
         return gameID;
     }
 
+    /**
+     * Notify every observer of this game that the specified message has been
+     * received by the server.
+     * This is also used internally to display message boxes in the game window
+     * to avoid re-typing similar JOptionPane code.
+     *
+     * @param message The message received by the server.
+     * @param title The title of the message.
+     * @param messageType The type of message used by {@link javax.swing.JOptionPane}
+     * to change the way the message is displayed.
+     */
     public void gameMessageReceived(String message, String title, int messageType) {
         for(GameObserver observer : observers) {
             observer.gameMessageReceived(message, title, messageType);
@@ -108,6 +125,11 @@ public class Game {
         return canMove;
     }
 
+    /**
+     * Sets whether the local player can move at the given time.
+     *
+     * @param canMove Whether the local player can currently move.
+     */
     public void setCanMove(boolean canMove) {
         this.canMove = canMove;
         for(GameObserver observer : observers) {
@@ -124,6 +146,11 @@ public class Game {
         return gameStatus;
     }
 
+    /**
+     * Sets the status of the game.
+     *
+     * @param status The status of the game. This will be a GAME_* constant.
+     */
     public void setGameStatus(int status) {
         if(status == Game.GAME_IN_PROGRESS ||
            status == Game.GAME_WON ||
@@ -166,6 +193,13 @@ public class Game {
         }
     }
     
+    /**
+     * Sets the value of the given tile on the board.
+     *
+     * @param x The X co-ordinate (between 0 and 2).
+     * @param y The Y co-ordinate (between 0 and 2).
+     * @param value The value of the tile. This will be one of the TILE_* constants.
+     */
     public void setTileValue(int x, int y, int value) {
         if(x >= 0 && x < 3 &&
            y >= 0 && y < 3) {
@@ -206,8 +240,21 @@ public class Game {
         provider.makeMove(this, x, y);
     }
 
+    /**
+     * Forfeit this game.
+     */
     public void forfeit() {
-        provider.forfeit(this);
+        if(getGameStatus() == Game.GAME_IN_PROGRESS) {
+            provider.forfeit(this);
+            remove();
+        }
+    }
+
+    /**
+     * Removes this game from the client's internal game map.
+     */
+    public void remove() {
+        provider.remove(this);
     }
 
     /**

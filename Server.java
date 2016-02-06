@@ -97,13 +97,18 @@ public class Server implements Runnable {
     public void run() {
         running = true;
         try {
+            System.out.println("Starting server...");
             server = new ServerSocket(port);
+            System.out.println("Server listening on port " + port + ".");
             server.setSoTimeout(3000);
 
             while(running) {
                 try {
                     Socket clientSocket = server.accept();
-
+                    InetAddress address = clientSocket.getInetAddress();
+                    System.out.println("New client inbound from " +
+                            address.getHostAddress() + 
+                            "(" + address.getHostName() + ").");
                     try {
                         DataInputStream inputStream = new DataInputStream(clientSocket.getInputStream());
                         DataOutputStream outputStream = new DataOutputStream(clientSocket.getOutputStream());
@@ -118,6 +123,7 @@ public class Server implements Runnable {
                             // Check that there is no version mismatch between client and server
                             int clientProtocolVersion = inputStream.readInt();
                             if(clientProtocolVersion != Packet.PROTOCOL_VERSION) {
+                                System.out.println("Client/server version mismatch.");
                                 outputStream.writeInt(Packet.SERVER_STATUS);
                                 outputStream.writeBoolean(false);
                                 outputStream.writeUTF(String.format(
@@ -127,6 +133,7 @@ public class Server implements Runnable {
                                 clientSocket.close();
                             } else {
                                 String nickname = inputStream.readUTF();
+                                System.out.println("Client identifying as " + nickname + "...");
                                 int extensions = inputStream.readInt(); // unused for now
                                 
                                 // If needed, append a number onto the end of
@@ -143,6 +150,10 @@ public class Server implements Runnable {
                                             );
                                 }
                                 nickname = replacementNickname;
+                                if(attempts > 0) {
+                                    System.out.println("Client assigned replacement nickname " + nickname + ".");
+                                }
+
                                 outputStream.writeInt(Packet.SERVER_STATUS);
                                 outputStream.writeBoolean(true);
                                 outputStream.writeUTF(nickname);

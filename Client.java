@@ -84,6 +84,8 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
      */
     @Override
     public void run() {
+        // Flag of whether the GUI has been started
+        boolean hasStarted = false;
         try {
             socket = new Socket(hostName, port);
             try(DataInputStream inputStream = new DataInputStream(socket.getInputStream());
@@ -108,6 +110,7 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
                     handlePacket(inputStream, welcomePacketID);
                 }
 
+                hasStarted = true;
                 LobbyPanel.openLobby(localNickname, lobby);
                 getInitialPlayers(lobby);
 
@@ -131,10 +134,28 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
                     "Unknown host: %s",
                     hostName));
             e.printStackTrace();
+        } catch(EOFException e) {
+            e.printStackTrace();
+            if(hasStarted) {
+                lobby.messageReceived(
+                        "Disconnected from server.",
+                        "End of Data",
+                        JOptionPane.ERROR_MESSAGE
+                        );
+            }
         } catch(IOException e) {
             e.printStackTrace();
+            if(hasStarted) {
+                lobby.messageReceived(
+                        "Disconnected from server.\n" + e.getMessage(),
+                        "IO Exception",
+                        JOptionPane.ERROR_MESSAGE
+                        );
+            }
         } catch(Exception e) {
             e.printStackTrace();
+        } finally {
+            System.exit(1);
         }
     }
 

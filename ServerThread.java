@@ -48,6 +48,20 @@ public class ServerThread implements Runnable {
     }
 
     /**
+     * Prints a message to the server's standard output, prefixed with this
+     * client's nickname.
+     *
+     * @param s The message to print to the standard output.
+     */
+    private void print(String s) {
+        System.out.println(String.format(
+                    "[%s] %s",
+                    nickname,
+                    s
+                    ));
+    }
+
+    /**
      * Add this client to the given game.
      *
      * @param game The game in which this client is participating.
@@ -105,10 +119,10 @@ public class ServerThread implements Runnable {
             }
             server.playerLeave(this);
         } catch(EOFException e) {
-            System.out.println("Client quit.");
+            print("Client quit. (EOF)");
             server.playerLeave(this);
         } catch(IOException e) {
-            System.out.println("IOException in ServerThread");
+            print("Client disconnected. (IOException: " + e.getMessage() + ")");
             e.printStackTrace();
         }
         for(ServerGame game : currentGames) {
@@ -130,6 +144,7 @@ public class ServerThread implements Runnable {
                 String nickname = in.readUTF();
                 ServerThread opponent = server.getClient(nickname);
                 if(opponent != null) {
+                    print("Sent a game request to " + nickname + ".");
                     ServerGame newGame = server.createGame(this, opponent);
                     sendGameRequestSent(newGame, nickname);
                     opponent.sendGameRequestReceived(newGame, getNickname());
@@ -143,6 +158,7 @@ public class ServerThread implements Runnable {
                 boolean accept = in.readBoolean();
                 ServerGame game = server.getGame(gameID);
                 if(game != null) {
+                    print("Responded to game ID " + gameID + ".");
                     if(accept) {
                         game.begin();
                     } else {
@@ -168,6 +184,7 @@ public class ServerThread implements Runnable {
                 int y = in.readInt();
                 ServerGame game = server.getGame(gameID);
                 if(game != null) {
+                    print("Placed symbol at (" + x + ", " + y + ") in game " + gameID + ".");
                     game.makeMove(this, x, y);
                 } else {
                     sendMessage(null, "That game does not exist.", "Game", JOptionPane.ERROR_MESSAGE);
@@ -178,6 +195,7 @@ public class ServerThread implements Runnable {
                 int gameID = in.readInt();
                 ServerGame game = server.getGame(gameID);
                 if(game != null) {
+                    print("Forfeited from game " + gameID + ".");
                     game.terminateGame(this, getNickname() + " forfeit.");
                 } else {
                     sendMessage(null, "That game does not exist.", "Game", JOptionPane.ERROR_MESSAGE);

@@ -38,6 +38,22 @@ public class ServerGame {
     }
 
     /**
+     * Prints a message to the server's standard output, prefixed with the
+     * nicknames of the two participants of this game.
+     *
+     * @param s The message to print to the standard output.
+     */
+    private void print(String s) {
+        System.out.println(String.format(
+                    "<%d: %s, %s> %s",
+                    getGameID(),
+                    getNought().getNickname(),
+                    getCross().getNickname(),
+                    s
+                    ));
+    }
+
+    /**
      * Get the ID of this game.
      *
      * @return The ID of this game.
@@ -91,6 +107,7 @@ public class ServerGame {
     public void begin() {
         if(!isInProgress()) {
             currentPlayer = cross;
+            print("Game beginning; " + currentPlayer.getNickname() + " to start.");
             cross.sendGameBegin(
                     this,
                     nought,
@@ -160,6 +177,7 @@ public class ServerGame {
      * clients.
      */
     private void sendGameUpdate() {
+        print("Updating clients with new game state.");
         cross.sendGameUpdate(this, currentPlayer == cross, Game.GAME_IN_PROGRESS);
         nought.sendGameUpdate(this, currentPlayer == nought, Game.GAME_IN_PROGRESS);
     }
@@ -176,6 +194,7 @@ public class ServerGame {
         ServerThread[] players = { nought, cross };
         for(ServerThread player : players) {
             if(player != leaver) {
+                print("Terminating game: " + reason);
                 player.sendMessage(
                         this,
                         "This game has terminated early because:\n" + reason,
@@ -217,6 +236,7 @@ public class ServerGame {
                 if(isGameWon()) {
                     // If the game has won, terminate the game, remove it from
                     // the server's memory, and inform the clients.
+                    print("Game over: won by " + currentPlayer.getNickname());
                     cross.sendGameUpdate(
                             this,
                             false,
@@ -233,6 +253,7 @@ public class ServerGame {
                 } else if(isBoardFull()) {
                     // If no-one has won yet, but the board is full, then the game
                     // is a draw.
+                    print("Game over: tie.");
                     cross.sendGameUpdate(
                             this,
                             false,

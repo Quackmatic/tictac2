@@ -17,6 +17,7 @@ public class LobbyPanel extends JPanel implements LobbyObserver {
     private JTable playerTable;
     private JLabel statusLabel;
     private Lobby lobby;
+    private String localNickname;
 
     /**
      * Open a LobbyPanel representing the given lobby.
@@ -26,7 +27,7 @@ public class LobbyPanel extends JPanel implements LobbyObserver {
      */
     public static void openLobby(String nickname, Lobby lobby) {
         JFrame frame = new JFrame(nickname + " - tictac2");
-        frame.add(new LobbyPanel(lobby));
+        frame.add(new LobbyPanel(lobby, nickname));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(300, 340);
         frame.setVisible(true);
@@ -36,10 +37,12 @@ public class LobbyPanel extends JPanel implements LobbyObserver {
      * Create a new LobbyPanel displaying the given lobby.
      *
      * @param lobby The lobby to be displayed in this LobbyPanel.
+     * @param localNickname The nickname of the local player.
      */
-    public LobbyPanel(Lobby lobby) {
+    public LobbyPanel(Lobby lobby, String localNickname) {
         super(new BorderLayout());
         this.lobby = lobby;
+        this.localNickname = localNickname;
 
         this.playerTable = new JTable(new LobbyModel(this.playerTable, lobby));
         add(new JScrollPane(this.playerTable));
@@ -91,12 +94,16 @@ public class LobbyPanel extends JPanel implements LobbyObserver {
 
     @Override
     public void messageReceived(String message, String title, int messageType) {
-        JOptionPane.showMessageDialog(
-                this,
-                message,
-                title,
-                messageType
-                );
+        if(messageType == -1) {
+            setStatus(message);
+        } else {
+            JOptionPane.showMessageDialog(
+                    this,
+                    message,
+                    title,
+                    messageType
+                    );
+        }
     }
 
     @Override

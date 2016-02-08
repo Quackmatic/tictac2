@@ -123,6 +123,14 @@ public class ServerGame {
     }
 
     /**
+     * Ends the game.
+     */
+    public void end() {
+        currentPlayer = null;
+        server.removeGame(this);
+    }
+
+    /**
      * Determines whether the game board is in a winning state.
      * Checking this every move is sufficient to determine whether the
      * previous move is a winner, and hence this can be used to determine
@@ -131,7 +139,7 @@ public class ServerGame {
      *
      * @return Whether the game board is in a winning state.
      */
-    public boolean isGameWon() {
+    private boolean isGameWon() {
         // check vert. rows
         for(int x = 0; x < 3; x++) {
             if(gameBoard[x][0] != Game.TILE_SPACE &&
@@ -177,7 +185,6 @@ public class ServerGame {
      * clients.
      */
     private void sendGameUpdate() {
-        print("Updating clients with new game state.");
         cross.sendGameUpdate(this, currentPlayer == cross, Game.GAME_IN_PROGRESS);
         nought.sendGameUpdate(this, currentPlayer == nought, Game.GAME_IN_PROGRESS);
     }
@@ -206,8 +213,58 @@ public class ServerGame {
                         false,
                         Game.GAME_DRAW
                         );
-                server.removeGame(this);
             }
+        }
+        server.removeGame(this);
+    }
+
+    /**
+     * Check for any scenarios where the game needs to end.
+     *
+     * @param player The player who just made the previous move.
+     */
+    private boolean checkGameEndingCases(ServerThread player) {
+        if(isGameWon()) {
+            // If the game has won, terminate the game, remove it from
+            // the server's memory, and inform the clients.
+            print("Game over: won by " + currentPlayer.getNickname());
+            cross.sendGameUpdate(
+                    this,
+                    false,
+                    currentPlayer == cross ? Game.GAME_WON : Game.GAME_LOST
+                    );
+            nought.sendGameUpdate(
+                    this,
+                    false,
+                    currentPlayer == nought ? Game.GAME_WON : Game.GAME_LOST
+                    );
+
+            int newScore = currentPlayer.getScore() + 1;
+            currentPlayer.setScore(newScore);
+            currentPlayer.sendMessage(
+                    null,
+                    String.format("Your score is now %d.", newScore),
+                    "Score",
+                    -1
+                    );
+            return true;
+        } else if(isBoardFull()) {
+            // If no-one has won yet, but the board is full, then the game
+            // is a draw.
+            print("Game over: tie.");
+            cross.sendGameUpdate(
+                    this,
+                    false,
+                    Game.GAME_DRAW
+                    );
+            nought.sendGameUpdate(
+                    this,
+                    false,
+                    Game.GAME_DRAW
+                    );
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -233,38 +290,11 @@ public class ServerGame {
                 nought.sendGameMove(this, x, y, tileValue);
                 cross.sendGameMove(this, x, y, tileValue);
 
-                if(isGameWon()) {
-                    // If the game has won, terminate the game, remove it from
-                    // the server's memory, and inform the clients.
-                    print("Game over: won by " + currentPlayer.getNickname());
-                    cross.sendGameUpdate(
-                            this,
-                            false,
-                            currentPlayer == cross ? Game.GAME_WON : Game.GAME_LOST
-                            );
-                    nought.sendGameUpdate(
-                            this,
-                            false,
-                            currentPlayer == nought ? Game.GAME_WON : Game.GAME_LOST
-                            );
-                    currentPlayer.setScore(currentPlayer.getScore() + 1);
-                    currentPlayer = null;
-                    server.removeGame(this);
-                } else if(isBoardFull()) {
-                    // If no-one has won yet, but the board is full, then the game
-                    // is a draw.
-                    print("Game over: tie.");
-                    cross.sendGameUpdate(
-                            this,
-                            false,
-                            Game.GAME_DRAW
-                            );
-                    nought.sendGameUpdate(
-                            this,
-                            false,
-                            Game.GAME_DRAW
-                            );
-                    currentPlayer = null;
+                if(checkGameEndingCases(player)) {
+                    // check if game-ending scenario occurred
+                    // if so, end the game and remove it from
+                    // the server's memory
+                    end();
                     server.removeGame(this);
                 } else {
                     // Otherwise, switch the player and update the clients.

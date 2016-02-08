@@ -231,7 +231,7 @@ public class Server implements Runnable {
     public void playerUpdate(ServerThread _thread) {
         final ServerThread thread = _thread;
         doToAllClients(t -> {
-            if(thread != t) {
+            if(_thread != t) {
                 t.sendPlayerUpdate(thread);
             }
         });

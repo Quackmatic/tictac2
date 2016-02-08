@@ -170,10 +170,9 @@ public class ServerThread implements Runnable {
                 break;
             }
             case Packet.CLIENT_PLAYER_GET_LIST: {
-                final ServerThread _this = this;
                 server.doToAllClients(t -> {
-                    if(_this != t) {
-                        _this.sendPlayerUpdate(t);
+                    if(this != t) {
+                        this.sendPlayerUpdate(t);
                     }
                 });
                 break;
@@ -214,7 +213,8 @@ public class ServerThread implements Runnable {
      * @param title The title of the message to present to the client.
      * @param messageType The numeric identifier of the type of message that
      * this message represents. This affects the way the message is presented
-     * visually.
+     * visually. If this is equal to {@code -1}, then the server will display
+     * this as a status string rather than a message box.
      */
     public void sendMessage(ServerGame game, String message, String title, int messageType) {
         int gameID = game == null ? -1 : game.getGameID();

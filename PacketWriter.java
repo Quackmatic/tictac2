@@ -6,6 +6,8 @@ import java.io.IOException;
  * data output stream. This must be used rather than a standard {@link java.util.function.Consumer}
  * as writing packets to a {@link java.io.DataOutputStream} has the potential to
  * throw a {@link java.io.IOException}.
+ *
+ * @author Tom Galvin
  */
 public interface PacketWriter {
     /**

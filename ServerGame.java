@@ -2,6 +2,8 @@ import javax.swing.JOptionPane;
 
 /**
  * Holds information on the state of a game on the server.
+ *
+ * @author Tom Galvin
  */
 public class ServerGame {
     private Server server;

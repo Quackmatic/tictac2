@@ -5,6 +5,8 @@ import java.util.function.Consumer;
 
 /**
  * The main class for the tictac2 server.
+ *
+ * @author Tom Galvin
  */
 public class Server implements Runnable {
     private int port;

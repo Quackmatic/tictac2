@@ -4,6 +4,8 @@ import java.awt.GridLayout;
 
 /**
  * Represents a grid of {@code javax.swing.JButton}s.
+ *
+ * @author Tom Galvin
  */
 public class JButtonGrid extends JPanel {
     private int columns, rows;

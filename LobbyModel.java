@@ -6,6 +6,8 @@ import javax.swing.JTable;
  * The model class required by a {@code JTable} to represent the
  * data and notify the JTable of changes to the data. In this case
  * the data is the people in a lobby.
+ *
+ * @author Tom Galvin
  */
 public class LobbyModel extends AbstractTableModel implements LobbyObserver {
     private Lobby lobby;

@@ -3,6 +3,7 @@ import java.net.*;
 import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.swing.JOptionPane;
+import javax.swing.UIManager;
 
 /**
  * Represents the client networking backend for the tictac2 game.
@@ -18,6 +19,14 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
     private String hostName;
     private int port;
 
+    /**
+     * sendQueue stores a queue of PacketWriters to send to the server. A
+     * PacketWriter is a functional interface that defines one method. This
+     * method is given a DataOutputStream and may throw IOException, meanning
+     * this is basically a queue of lambda expressions which all write packets
+     * to the network - this approach was chosen over other (potentially more
+     * efficient) methods for ease of use and implementation.
+     */
     private LinkedBlockingQueue<PacketWriter> sendQueue;
     private DataInputStream inputStream;
     private DataOutputStream outputStream;
@@ -69,7 +78,8 @@ public class Client implements Runnable, LobbyProvider, GameProvider {
     }
 
     /**
-     * Removes the given game from the record of current games.
+     * Removes the given game from the record of current games being
+     * played by the client.
      *
      * @param game The game to remove from the internal map of games.
      */

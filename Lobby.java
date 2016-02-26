@@ -3,6 +3,8 @@ import java.util.HashMap;
 
 /**
  * Represents a lobby in which players wait and can send game requests.
+ *
+ * @author Tom Galvin
  */
 public class Lobby {
     private HashMap<String, Integer> players;

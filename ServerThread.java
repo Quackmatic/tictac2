@@ -7,6 +7,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * Represents one user connected to the server, handling most network-related
  * events.
+ *
+ * @author Tom Galvin
  */
 public class ServerThread implements Runnable {
     private Server server;

@@ -1,6 +1,8 @@
 /**
  * A class to represent packet ID numbers for all
  * packets in the tictac2 protocol.
+ *
+ * @author Tom Galvin
  */
 public abstract class Packet {
     /**
